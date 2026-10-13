@@ -1,7 +1,6 @@
 import csv
 import json
 import os
-import sqlite3
 import sys
 import tempfile
 import unittest
@@ -131,7 +130,7 @@ class TestStats(FolderTestCase):
         conn = create_database(":memory:")
         insert_sales(conn, self.csv)
         text = format_report(calculate_stats(conn))
-        feb_line = next(l for l in text.splitlines() if l.strip().startswith("Feb/2024"))
+        feb_line = next(line for line in text.splitlines() if line.strip().startswith("Feb/2024"))
         self.assertTrue(feb_line.endswith("█"))
 
     def test_empty_database_does_not_break(self):
