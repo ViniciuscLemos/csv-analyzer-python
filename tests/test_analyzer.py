@@ -156,6 +156,12 @@ class TestStats(FolderTestCase):
         self.assertAlmostEqual(ana["share"], 70.0)
         self.assertEqual([m["month"] for m in stats["monthly"]], ["2024-01", "2024-02"])
 
+    def test_top_products_limit(self):
+        stats = calculate_stats(self.conn, top=1)
+        self.assertEqual([p["product"] for p in stats["top_products"]], ["Coffee"])
+        self.assertIn("TOP 1 PRODUCTS", format_report(stats))
+        self.assertIn("Top 1 products", format_html(stats))
+
     def test_region_average_ticket(self):
         south = next(r for r in calculate_stats(self.conn)["regions"] if r["region"] == "South")
         self.assertAlmostEqual(south["average_ticket"], 25)

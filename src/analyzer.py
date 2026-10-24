@@ -20,7 +20,7 @@ def _rows(cursor, fields):
     return [dict(zip(fields, r)) for r in cursor.fetchall()]
 
 
-def calculate_stats(conn: sqlite3.Connection) -> dict:
+def calculate_stats(conn: sqlite3.Connection, top: int = 5) -> dict:
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -50,8 +50,8 @@ def calculate_stats(conn: sqlite3.Connection) -> dict:
         FROM sales
         GROUP BY product
         ORDER BY units DESC, revenue DESC
-        LIMIT 5
-    """)
+        LIMIT ?
+    """, (top,))
     products = _rows(cursor, ("product", "units", "revenue"))
 
     cursor.execute("""
@@ -137,7 +137,7 @@ def format_report(stats: dict) -> str:
         lines.append(f"  {c['category']:<15} {c['sales']:>7} {format_money(c['revenue']):>16} "
                      f"{format_money(c['average_price']):>14}")
 
-    lines.append(_title("TOP 5 PRODUCTS (by units)"))
+    lines.append(_title(f"TOP {len(stats['top_products'])} PRODUCTS (by units)"))
     for i, p in enumerate(stats["top_products"], start=1):
         lines.append(f"  {i}. {p['product']:<26} {p['units']:>4} un. - {format_money(p['revenue'])}")
 
@@ -170,8 +170,8 @@ def format_report(stats: dict) -> str:
 
 
 def generate_report(conn: sqlite3.Connection, output_path: str, json_path: str | None = None,
-                    html_path: str | None = None) -> dict:
-    stats = calculate_stats(conn)
+                    html_path: str | None = None, top: int = 5) -> dict:
+    stats = calculate_stats(conn, top)
     content = format_report(stats)
 
     with open(output_path, 'w', encoding='utf-8') as f:

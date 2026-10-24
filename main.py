@@ -32,6 +32,8 @@ def read_args(argv=None) -> argparse.Namespace:
                         help="also saves a page with charts to output/report.html")
     parser.add_argument("--generate", type=positive, metavar="N",
                         help="generates a sample CSV with N sales before analyzing")
+    parser.add_argument("--top", type=positive, default=5, metavar="N",
+                        help="how many products in the ranking (default: 5)")
     parser.add_argument("--seed", type=int,
                         help="seed for the sample CSV (same value = same data)")
     return parser.parse_args(argv)
@@ -100,7 +102,7 @@ def main(argv=None) -> int:
         report_file = os.path.join(args.output, "report.txt")
         json_file = os.path.join(args.output, "report.json") if args.json else None
         html_file = os.path.join(args.output, "report.html") if args.html else None
-        generate_report(conn, report_file, json_file, html_file)
+        generate_report(conn, report_file, json_file, html_file, top=args.top)
         print(f"      Report saved to: {show(report_file)}")
         if json_file:
             print(f"      JSON saved to: {show(json_file)}")

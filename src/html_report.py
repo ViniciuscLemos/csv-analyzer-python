@@ -127,7 +127,7 @@ def format_html(stats: dict) -> str:
         + '<section class="card"><h2>Seller ranking</h2><table><thead><tr><th>Seller</th>'
         + '<th class="num">Sales</th><th class="num">Revenue</th><th class="num">Share</th></tr></thead>'
         + f"<tbody>{sellers_rows}</tbody></table></section>"
-        + '<section class="card"><h2>Top 5 products (by units)</h2><table><thead><tr><th>Product</th>'
+        + '<section class="card"><h2>Top ' + str(len(stats["top_products"])) + ' products (by units)</h2><table><thead><tr><th>Product</th>'
         + '<th class="num">Units</th><th class="num">Revenue</th></tr></thead>'
         + f"<tbody>{products_rows}</tbody></table></section>"
         + "</div>"
