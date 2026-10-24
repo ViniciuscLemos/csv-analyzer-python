@@ -76,6 +76,16 @@ class TestImport(FolderTestCase):
         total = conn.execute("SELECT SUM(total) FROM sales").fetchone()[0]
         self.assertAlmostEqual(total, 21.0)
 
+    def test_price_with_currency_symbol(self):
+        self.write_csv([
+            ["2024-01-10", "Coffee", "Food", "1", "$10.50", "Ana", "South"],
+            ["2024-01-11", "Coffee", "Food", "1", "R$ 9,50", "Ana", "South"],
+        ])
+        conn = create_database(":memory:")
+        self.assertEqual(insert_sales(conn, self.csv).inserted, 2)
+        total = conn.execute("SELECT SUM(total) FROM sales").fetchone()[0]
+        self.assertAlmostEqual(total, 20.0)
+
     def test_missing_columns(self):
         self.write_csv([["2024-01-10", "Coffee"]], header=["date", "product"])
         conn = create_database(":memory:")

@@ -35,6 +35,12 @@ def create_database(db_path: str) -> sqlite3.Connection:
     return conn
 
 
+def _parse_price(text: str) -> float:
+    # accepts 10.5 and 10,5, and a currency symbol in front ($10.50, R$ 10,50)
+    text = text.strip().lstrip("R$€£ ")
+    return float(text.replace(",", "."))
+
+
 def _validate_row(row: dict) -> tuple:
     for column in REQUIRED_COLUMNS:
         if not (row.get(column) or "").strip():
@@ -54,7 +60,7 @@ def _validate_row(row: dict) -> tuple:
         raise ValueError("quantity must be greater than zero")
 
     try:
-        price = float(row["price"].replace(",", "."))  # accepts 10.5 and 10,5
+        price = _parse_price(row["price"])
     except ValueError:
         raise ValueError(f"price '{row['price']}' is not a number") from None
     if price < 0:
