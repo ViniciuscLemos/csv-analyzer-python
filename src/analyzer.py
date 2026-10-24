@@ -3,6 +3,7 @@ import sqlite3
 from datetime import datetime
 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
 def format_money(value: float) -> str:
@@ -81,6 +82,16 @@ def calculate_stats(conn: sqlite3.Connection) -> dict:
     """)
     months = _rows(cursor, ("month", "sales", "revenue"))
 
+    # %w gives 0 for Sunday; turned into Monday first, the way people read a week
+    cursor.execute("""
+        SELECT (CAST(strftime('%w', date) AS INTEGER) + 6) % 7 AS day, COUNT(*), SUM(total)
+        FROM sales
+        GROUP BY day
+        ORDER BY day
+    """)
+    weekdays = [{**w, "day": WEEKDAYS[w["day"]]}
+                for w in _rows(cursor, ("day", "sales", "revenue"))]
+
     return {
         "summary": summary,
         "categories": categories,
@@ -88,6 +99,7 @@ def calculate_stats(conn: sqlite3.Connection) -> dict:
         "sellers": sellers,
         "regions": regions,
         "monthly": months,
+        "weekdays": weekdays,
     }
 
 
@@ -147,6 +159,10 @@ def format_report(stats: dict) -> str:
         # a month with few sales gets at least 1 block, otherwise it looks like nothing was sold
         bar = "█" * max(1, round(20 * m["revenue"] / biggest)) if biggest and m["revenue"] > 0 else ""
         lines.append(f"  {_month_name(m['month']):<9} {format_money(m['revenue']):>16}  {bar}")
+
+    lines.append(_title("SALES BY WEEKDAY"))
+    for w in stats["weekdays"]:
+        lines.append(f"  {w['day']:<10} {format_money(w['revenue']):>16}  ({w['sales']} sales)")
 
     lines.append("\n" + "=" * 55)
     return "\n".join(lines)

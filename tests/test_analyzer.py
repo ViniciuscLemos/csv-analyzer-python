@@ -156,6 +156,12 @@ class TestStats(FolderTestCase):
         self.assertAlmostEqual(ana["share"], 70.0)
         self.assertEqual([m["month"] for m in stats["monthly"]], ["2024-01", "2024-02"])
 
+    def test_weekdays_start_on_monday(self):
+        weekdays = calculate_stats(self.conn)["weekdays"]
+        self.assertEqual([(w["day"], w["revenue"]) for w in weekdays],
+                         [("Monday", 30), ("Wednesday", 20), ("Saturday", 50)])
+        self.assertIn("SALES BY WEEKDAY", format_report(calculate_stats(self.conn)))
+
     def test_text_report(self):
         text = format_report(calculate_stats(self.conn))
         self.assertIn("$100.00", text)
