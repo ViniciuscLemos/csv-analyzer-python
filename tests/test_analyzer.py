@@ -156,6 +156,10 @@ class TestStats(FolderTestCase):
         self.assertAlmostEqual(ana["share"], 70.0)
         self.assertEqual([m["month"] for m in stats["monthly"]], ["2024-01", "2024-02"])
 
+    def test_region_average_ticket(self):
+        south = next(r for r in calculate_stats(self.conn)["regions"] if r["region"] == "South")
+        self.assertAlmostEqual(south["average_ticket"], 25)
+
     def test_weekdays_start_on_monday(self):
         weekdays = calculate_stats(self.conn)["weekdays"]
         self.assertEqual([(w["day"], w["revenue"]) for w in weekdays],

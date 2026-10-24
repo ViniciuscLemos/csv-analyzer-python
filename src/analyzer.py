@@ -67,12 +67,12 @@ def calculate_stats(conn: sqlite3.Connection) -> dict:
     sellers = _rows(cursor, ("seller", "sales", "revenue", "share"))
 
     cursor.execute("""
-        SELECT region, COUNT(*), SUM(total) AS revenue
+        SELECT region, COUNT(*), SUM(total) AS revenue, AVG(total)
         FROM sales
         GROUP BY region
         ORDER BY revenue DESC
     """)
-    regions = _rows(cursor, ("region", "sales", "revenue"))
+    regions = _rows(cursor, ("region", "sales", "revenue", "average_ticket"))
 
     cursor.execute("""
         SELECT strftime('%Y-%m', date) AS month, COUNT(*), SUM(total)
@@ -151,7 +151,8 @@ def format_report(stats: dict) -> str:
 
     lines.append(_title("SALES BY REGION"))
     for r in stats["regions"]:
-        lines.append(f"  {r['region']:<15} {format_money(r['revenue']):>16}  ({r['sales']} sales)")
+        lines.append(f"  {r['region']:<15} {format_money(r['revenue']):>16}  ({r['sales']} sales, "
+                     f"avg {format_money(r['average_ticket'])})")
 
     lines.append(_title("MONTHLY TREND"))
     biggest = max(m["revenue"] for m in stats["monthly"])
