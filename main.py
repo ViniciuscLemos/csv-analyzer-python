@@ -11,6 +11,13 @@ from src.csv_generator import generate_sample_csv
 PROJECT_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
 
+def positive(text: str) -> int:
+    number = int(text)
+    if number <= 0:
+        raise argparse.ArgumentTypeError("must be greater than zero")
+    return number
+
+
 def read_args(argv=None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Imports a sales CSV into SQLite and generates a report.",
@@ -23,7 +30,7 @@ def read_args(argv=None) -> argparse.Namespace:
                         help="also saves the stats to output/report.json")
     parser.add_argument("--html", action="store_true",
                         help="also saves a page with charts to output/report.html")
-    parser.add_argument("--generate", type=int, metavar="N",
+    parser.add_argument("--generate", type=positive, metavar="N",
                         help="generates a sample CSV with N sales before analyzing")
     parser.add_argument("--seed", type=int,
                         help="seed for the sample CSV (same value = same data)")

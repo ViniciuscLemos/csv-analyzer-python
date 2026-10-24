@@ -1,3 +1,4 @@
+import contextlib
 import csv
 import json
 import os
@@ -210,6 +211,11 @@ class TestMain(FolderTestCase):
             page = f.read()
         self.assertIn("<title>Sales report</title>", page)
         self.assertIn("Revenue by month", page)
+
+    def test_generate_zero_is_refused(self):
+        with redirect_stdout(StringIO()), self.assertRaises(SystemExit), \
+                open(os.devnull, "w") as null, contextlib.redirect_stderr(null):
+            main.read_args(["--generate", "0"])
 
     def test_invalid_csv_returns_error(self):
         self.write_csv([["x"]], header=["wrong_column"])
