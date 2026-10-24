@@ -70,15 +70,11 @@ def _validate_row(row: dict) -> tuple:
     if price < 0:
         raise ValueError("price can't be negative")
 
-    return (
-        date,
-        row["product"].strip(),
-        row["category"].strip(),
-        quantity,
-        price,
-        row["seller"].strip(),
-        row["region"].strip(),
-    )
+    # "Ana  Lima" and "Ana Lima" should be the same seller in the groupings
+    def text(column):
+        return " ".join(row[column].split())
+
+    return (date, text("product"), text("category"), quantity, price, text("seller"), text("region"))
 
 
 def insert_sales(conn: sqlite3.Connection, csv_path: str) -> ImportResult:

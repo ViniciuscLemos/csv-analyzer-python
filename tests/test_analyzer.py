@@ -96,6 +96,16 @@ class TestImport(FolderTestCase):
         total = conn.execute("SELECT SUM(total) FROM sales").fetchone()[0]
         self.assertAlmostEqual(total, 2235.0)
 
+    def test_extra_spaces_dont_split_groups(self):
+        self.write_csv([
+            ["2024-01-10", "Coffee", "Food", "1", "10", "Ana Lima", "South"],
+            ["2024-01-11", "Coffee", "Food", "1", "10", " Ana  Lima ", "South"],
+        ])
+        conn = create_database(":memory:")
+        insert_sales(conn, self.csv)
+        sellers = conn.execute("SELECT DISTINCT seller FROM sales").fetchall()
+        self.assertEqual(sellers, [("Ana Lima",)])
+
     def test_missing_columns(self):
         self.write_csv([["2024-01-10", "Coffee"]], header=["date", "product"])
         conn = create_database(":memory:")
