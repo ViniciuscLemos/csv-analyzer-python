@@ -38,6 +38,10 @@ def create_database(db_path: str) -> sqlite3.Connection:
 def _parse_price(text: str) -> float:
     # accepts 10.5 and 10,5, and a currency symbol in front ($10.50, R$ 10,50)
     text = text.strip().lstrip("R$€£ ")
+    if "," in text and "." in text:
+        # with both, the last one is the decimal: 1,234.56 or 1.234,56
+        thousands = "," if text.rfind(".") > text.rfind(",") else "."
+        text = text.replace(thousands, "")
     return float(text.replace(",", "."))
 
 
