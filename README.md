@@ -28,6 +28,7 @@ python main.py --csv my_sales.csv          # use another file
 python main.py --generate 1000 --seed 42   # generate a new CSV
 python main.py --json                      # also save it as JSON
 python main.py --html                      # also save a page with charts
+python main.py --top 10                    # top 10 products instead of 5
 ```
 
 ## What the report looks like
@@ -50,7 +51,7 @@ date,product,category,quantity,price,seller,region
 2024-03-10,Laptop,Electronics,1,2500.00,Ana Lima,Southeast
 ```
 
-The date has to be in the `YYYY-MM-DD` format, and the price can be written with a dot or a comma. The separator can be a comma or a semicolon, which is how Excel saves the file in some languages. If a row is wrong, the program skips it and tells you which one and why.
+The date has to be in the `YYYY-MM-DD` format, and the price can be written with a dot or a comma, with a currency symbol in front (`$1,234.50`, `R$ 1.234,50`) or without. The separator can be a comma or a semicolon, which is how Excel saves the file in some languages. If a row is wrong, the program skips it and tells you which one and why. Completely empty lines (Excel likes to leave a few `,,,,,,` at the end) are just ignored.
 
 ## Tests
 
