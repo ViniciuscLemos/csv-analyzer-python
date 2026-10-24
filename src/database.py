@@ -97,6 +97,9 @@ def insert_sales(conn: sqlite3.Connection, csv_path: str) -> ImportResult:
 
         for number, row in enumerate(reader, start=2):  # line 1 is the header
             row = {(k or "").strip(): v for k, v in row.items()}
+            # Excel leaves lines like ",,,,,," at the end; that's not a broken sale
+            if not any((v or "").strip() for v in row.values() if isinstance(v, str)):
+                continue
             try:
                 valid.append(_validate_row(row))
             except ValueError as error:

@@ -106,6 +106,15 @@ class TestImport(FolderTestCase):
         sellers = conn.execute("SELECT DISTINCT seller FROM sales").fetchall()
         self.assertEqual(sellers, [("Ana Lima",)])
 
+    def test_empty_lines_are_skipped_quietly(self):
+        self.write_csv([
+            ["2024-01-10", "Coffee", "Food", "1", "10", "Ana", "South"],
+            [""] * 7,
+            [" "] * 7,
+        ])
+        result = insert_sales(create_database(":memory:"), self.csv)
+        self.assertEqual((result.inserted, result.rejected), (1, []))
+
     def test_missing_columns(self):
         self.write_csv([["2024-01-10", "Coffee"]], header=["date", "product"])
         conn = create_database(":memory:")
