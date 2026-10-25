@@ -147,6 +147,8 @@ class TestStats(FolderTestCase):
         self.assertAlmostEqual(summary["total_revenue"], 100)
         self.assertAlmostEqual(summary["biggest_sale"], 50)
         self.assertEqual(summary["first_sale"], "2024-01-10")
+        self.assertEqual(summary["units_sold"], 6)
+        self.assertEqual(summary["best_day"], {"date": "2024-01-20", "revenue": 50})
 
     def test_groupings(self):
         stats = calculate_stats(self.conn)

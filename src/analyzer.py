@@ -31,11 +31,22 @@ def calculate_stats(conn: sqlite3.Connection, top: int = 5) -> dict:
             COALESCE(MAX(total), 0)     AS biggest_sale,
             COALESCE(MIN(total), 0)     AS smallest_sale,
             MIN(date)                   AS first_sale,
-            MAX(date)                   AS last_sale
+            MAX(date)                   AS last_sale,
+            COALESCE(SUM(quantity), 0)  AS units_sold
         FROM sales
     """)
     columns = [c[0] for c in cursor.description]
     summary = dict(zip(columns, cursor.fetchone()))
+
+    cursor.execute("""
+        SELECT date, SUM(total) AS revenue
+        FROM sales
+        GROUP BY date
+        ORDER BY revenue DESC, date
+        LIMIT 1
+    """)
+    best = cursor.fetchone()
+    summary["best_day"] = {"date": best[0], "revenue": best[1]} if best else None
 
     cursor.execute("""
         SELECT category, COUNT(*), SUM(total), AVG(price)
@@ -129,6 +140,9 @@ def format_report(stats: dict) -> str:
     lines.append(f"  Average ticket:     {format_money(summary['average_ticket'])}")
     lines.append(f"  Biggest sale:       {format_money(summary['biggest_sale'])}")
     lines.append(f"  Smallest sale:      {format_money(summary['smallest_sale'])}")
+    lines.append(f"  Units sold:         {summary['units_sold']}")
+    best = summary["best_day"]
+    lines.append(f"  Best day:           {best['date']} ({format_money(best['revenue'])})")
 
     lines.append(_title("SALES BY CATEGORY"))
     lines.append(f"  {'Category':<15} {'Sales':>7} {'Revenue':>16} {'Avg Price':>14}")
