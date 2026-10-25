@@ -125,3 +125,9 @@ def keep_period(conn: sqlite3.Connection, start: str | None = None, end: str | N
             (start, end),
         ).rowcount
     return removed
+
+
+def keep_category(conn: sqlite3.Connection, category: str) -> int:
+    """Deletes the sales from other categories (ignores case). Returns how many went away."""
+    with conn:
+        return conn.execute("DELETE FROM sales WHERE lower(category) <> lower(?)", (category.strip(),)).rowcount

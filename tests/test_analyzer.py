@@ -11,7 +11,7 @@ from io import StringIO
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.analyzer import calculate_stats, format_money, format_report  # noqa: E402
-from src.database import InvalidCSVError, create_database, insert_sales, keep_period  # noqa: E402
+from src.database import InvalidCSVError, create_database, insert_sales, keep_category, keep_period  # noqa: E402
 from src.csv_generator import generate_sample_csv  # noqa: E402
 from src.html_report import format_html  # noqa: E402
 import main  # noqa: E402
@@ -169,6 +169,10 @@ class TestStats(FolderTestCase):
         self.assertEqual(keep_period(self.conn, None, "2024-01-31"), 1)
         dates = self.conn.execute("SELECT date FROM sales").fetchall()
         self.assertEqual(dates, [("2024-01-20",)])
+
+    def test_keep_category(self):
+        self.assertEqual(keep_category(self.conn, " food "), 1)
+        self.assertEqual(calculate_stats(self.conn)["summary"]["total_revenue"], 50)
 
     def test_top_products_limit(self):
         stats = calculate_stats(self.conn, top=1)

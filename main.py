@@ -6,7 +6,7 @@ import sys
 
 from datetime import datetime
 
-from src.database import create_database, insert_sales, keep_period, InvalidCSVError
+from src.database import create_database, insert_sales, keep_category, keep_period, InvalidCSVError
 from src.analyzer import generate_report
 from src.csv_generator import generate_sample_csv
 
@@ -48,6 +48,8 @@ def read_args(argv=None) -> argparse.Namespace:
                         help="only sales on or after this day (YYYY-MM-DD)")
     parser.add_argument("--to", dest="end", type=day, metavar="DATE",
                         help="only sales up to this day (YYYY-MM-DD)")
+    parser.add_argument("--category",
+                        help="only sales from this category")
     parser.add_argument("--seed", type=int,
                         help="seed for the sample CSV (same value = same data)")
     return parser.parse_args(argv)
@@ -115,6 +117,9 @@ def main(argv=None) -> int:
         if args.start or args.end:
             removed = keep_period(conn, args.start, args.end)
             print(f"      {removed} sale(s) outside the period left out.")
+        if args.category:
+            removed = keep_category(conn, args.category)
+            print(f"      {removed} sale(s) from other categories left out.")
 
         print("\n[4/4] Generating the report...")
         report_file = os.path.join(args.output, "report.txt")
