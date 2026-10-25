@@ -87,7 +87,8 @@ def insert_sales(conn: sqlite3.Connection, csv_path: str) -> ImportResult:
         # Excel in some languages (Portuguese, for example) saves the CSV with ; instead of a comma
         header = file.readline()
         file.seek(0)
-        delimiter = ";" if header.count(";") > header.count(",") else ","
+        # and a copy from a spreadsheet pasted into a file comes with tabs
+        delimiter = max((",", ";", "\t"), key=header.count)
         reader = csv.DictReader(file, delimiter=delimiter)
 
         columns = {c.strip() for c in (reader.fieldnames or [])}

@@ -77,6 +77,12 @@ class TestImport(FolderTestCase):
         total = conn.execute("SELECT SUM(total) FROM sales").fetchone()[0]
         self.assertAlmostEqual(total, 21.0)
 
+    def test_csv_with_tabs(self):
+        with open(self.csv, "w", newline="", encoding="utf-8") as f:
+            f.write("\t".join(HEADER) + "\n")
+            f.write("2024-01-10\tCoffee\tFood\t2\t10.50\tAna\tSouth\n")
+        self.assertEqual(insert_sales(create_database(":memory:"), self.csv).inserted, 1)
+
     def test_price_with_currency_symbol(self):
         self.write_csv([
             ["2024-01-10", "Coffee", "Food", "1", "$10.50", "Ana", "South"],
