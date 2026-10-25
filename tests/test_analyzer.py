@@ -11,7 +11,7 @@ from io import StringIO
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.analyzer import calculate_stats, format_money, format_report  # noqa: E402
-from src.database import InvalidCSVError, create_database, insert_sales  # noqa: E402
+from src.database import InvalidCSVError, create_database, insert_sales, keep_period  # noqa: E402
 from src.csv_generator import generate_sample_csv  # noqa: E402
 from src.html_report import format_html  # noqa: E402
 import main  # noqa: E402
@@ -155,6 +155,12 @@ class TestStats(FolderTestCase):
         ana = next(s for s in stats["sellers"] if s["seller"] == "Ana")
         self.assertAlmostEqual(ana["share"], 70.0)
         self.assertEqual([m["month"] for m in stats["monthly"]], ["2024-01", "2024-02"])
+
+    def test_keep_period(self):
+        self.assertEqual(keep_period(self.conn, "2024-01-15", None), 1)
+        self.assertEqual(keep_period(self.conn, None, "2024-01-31"), 1)
+        dates = self.conn.execute("SELECT date FROM sales").fetchall()
+        self.assertEqual(dates, [("2024-01-20",)])
 
     def test_top_products_limit(self):
         stats = calculate_stats(self.conn, top=1)

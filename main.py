@@ -4,7 +4,9 @@ import argparse
 import os
 import sys
 
-from src.database import create_database, insert_sales, InvalidCSVError
+from datetime import datetime
+
+from src.database import create_database, insert_sales, keep_period, InvalidCSVError
 from src.analyzer import generate_report
 from src.csv_generator import generate_sample_csv
 
@@ -16,6 +18,14 @@ def positive(text: str) -> int:
     if number <= 0:
         raise argparse.ArgumentTypeError("must be greater than zero")
     return number
+
+
+def day(text: str) -> str:
+    try:
+        datetime.strptime(text, "%Y-%m-%d")
+    except ValueError:
+        raise argparse.ArgumentTypeError("use the YYYY-MM-DD format") from None
+    return text
 
 
 def read_args(argv=None) -> argparse.Namespace:
@@ -34,6 +44,10 @@ def read_args(argv=None) -> argparse.Namespace:
                         help="generates a sample CSV with N sales before analyzing")
     parser.add_argument("--top", type=positive, default=5, metavar="N",
                         help="how many products in the ranking (default: 5)")
+    parser.add_argument("--from", dest="start", type=day, metavar="DATE",
+                        help="only sales on or after this day (YYYY-MM-DD)")
+    parser.add_argument("--to", dest="end", type=day, metavar="DATE",
+                        help="only sales up to this day (YYYY-MM-DD)")
     parser.add_argument("--seed", type=int,
                         help="seed for the sample CSV (same value = same data)")
     return parser.parse_args(argv)
@@ -97,6 +111,10 @@ def main(argv=None) -> int:
                 print(f"        line {number}: {reason}")
             if len(result.rejected) > 10:
                 print(f"        ... and {len(result.rejected) - 10} more")
+
+        if args.start or args.end:
+            removed = keep_period(conn, args.start, args.end)
+            print(f"      {removed} sale(s) outside the period left out.")
 
         print("\n[4/4] Generating the report...")
         report_file = os.path.join(args.output, "report.txt")

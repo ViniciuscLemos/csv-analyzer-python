@@ -114,3 +114,13 @@ def insert_sales(conn: sqlite3.Connection, csv_path: str) -> ImportResult:
 
     result.inserted = len(valid)
     return result
+
+
+def keep_period(conn: sqlite3.Connection, start: str | None = None, end: str | None = None) -> int:
+    """Deletes the sales outside start..end (both included). Returns how many went away."""
+    with conn:
+        removed = conn.execute(
+            "DELETE FROM sales WHERE date < COALESCE(?, date) OR date > COALESCE(?, date)",
+            (start, end),
+        ).rowcount
+    return removed
