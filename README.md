@@ -53,7 +53,7 @@ date,product,category,quantity,price,seller,region
 2024-03-10,Laptop,Electronics,1,2500.00,Ana Lima,Southeast
 ```
 
-The date has to be in the `YYYY-MM-DD` format, and the price can be written with a dot or a comma, with a currency symbol in front (`$1,234.50`, `R$ 1.234,50`) or without. The separator can be a comma, a semicolon or a tab, which is how Excel saves the file in some languages. If a row is wrong, the program skips it and tells you which one and why. Completely empty lines (Excel likes to leave a few `,,,,,,` at the end) are just ignored.
+The date has to be in the `YYYY-MM-DD` format, and the price can be written with a dot or a comma, with a currency symbol in front (`$1,234.50`, `R$ 1.234,50`) or without. The separator can be a comma, a semicolon (that is how Excel saves the file in some languages) or a tab. If a row is wrong, the program skips it and tells you which one and why. Completely empty lines (Excel likes to leave a few `,,,,,,` at the end) are just ignored.
 
 ## Tests
 
