@@ -31,6 +31,7 @@ python main.py --html                      # also save a page with charts
 python main.py --top 10                    # top 10 products instead of 5
 python main.py --from 2024-06-01 --to 2024-06-30   # only one period
 python main.py --category books            # only one category
+python main.py --seller "ana lima"          # only one seller (case doesn't matter)
 ```
 
 ## What the report looks like

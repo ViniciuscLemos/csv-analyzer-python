@@ -131,3 +131,9 @@ def keep_category(conn: sqlite3.Connection, category: str) -> int:
     """Deletes the sales from other categories (ignores case). Returns how many went away."""
     with conn:
         return conn.execute("DELETE FROM sales WHERE lower(category) <> lower(?)", (category.strip(),)).rowcount
+
+
+def keep_seller(conn: sqlite3.Connection, seller: str) -> int:
+    """Same as keep_category, for one seller."""
+    with conn:
+        return conn.execute("DELETE FROM sales WHERE lower(seller) <> lower(?)", (seller.strip(),)).rowcount

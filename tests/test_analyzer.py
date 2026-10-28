@@ -11,7 +11,7 @@ from io import StringIO
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.analyzer import calculate_stats, format_money, format_report  # noqa: E402
-from src.database import InvalidCSVError, create_database, insert_sales, keep_category, keep_period  # noqa: E402
+from src.database import InvalidCSVError, create_database, insert_sales, keep_category, keep_period, keep_seller  # noqa: E402
 from src.csv_generator import generate_sample_csv  # noqa: E402
 from src.html_report import format_html  # noqa: E402
 import main  # noqa: E402
@@ -190,6 +190,10 @@ class TestStats(FolderTestCase):
     def test_keep_category(self):
         self.assertEqual(keep_category(self.conn, " food "), 1)
         self.assertEqual(calculate_stats(self.conn)["summary"]["total_revenue"], 50)
+
+    def test_keep_seller(self):
+        self.assertEqual(keep_seller(self.conn, "ANA"), 1)
+        self.assertEqual([s["seller"] for s in calculate_stats(self.conn)["sellers"]], ["Ana"])
 
     def test_top_products_limit(self):
         stats = calculate_stats(self.conn, top=1)
