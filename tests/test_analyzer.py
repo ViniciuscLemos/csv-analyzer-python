@@ -169,6 +169,7 @@ class TestStats(FolderTestCase):
         self.assertIsNone(months[0]["change"])
         self.assertAlmostEqual(months[1]["change"], -57.14, places=2)  # 70 -> 30
         self.assertIn("-57%", format_report(calculate_stats(self.conn)))
+        self.assertIn("(-57% from the month before)", format_html(calculate_stats(self.conn)))
 
     def test_no_change_after_a_month_without_sales(self):
         self.write_csv([

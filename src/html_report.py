@@ -57,6 +57,12 @@ def _percent(value: float, biggest: float) -> float:
     return round(100 * value / biggest, 1) if biggest else 0
 
 
+def _change(month: dict) -> str:
+    if month["change"] is None:
+        return ""
+    return f" ({month['change']:+.0f}% from the month before)"
+
+
 def _bars(rows: list[dict], label: str, value: str, extra=None) -> str:
     biggest = max((r[value] for r in rows), default=0)
     items = []
@@ -92,7 +98,7 @@ def format_html(stats: dict) -> str:
 
     biggest_month = max(m["revenue"] for m in stats["monthly"])
     months_html = "".join(
-        f'<div class="month" title="{_month_name(m["month"])}: {format_money(m["revenue"])}">'
+        f'<div class="month" title="{_month_name(m["month"])}: {format_money(m["revenue"])}{_change(m)}">'
         f'<span class="value">{format_money(m["revenue"] / 1000)}k</span>'
         f'<div class="col" style="height:{max(_percent(m["revenue"], biggest_month), 1)}%"></div>'
         f'<small>{_month_name(m["month"])}</small></div>'
