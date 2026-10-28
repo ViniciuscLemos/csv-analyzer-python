@@ -92,6 +92,13 @@ def calculate_stats(conn: sqlite3.Connection, top: int = 5) -> dict:
         ORDER BY month
     """)
     months = _rows(cursor, ("month", "sales", "revenue"))
+    # compared with the month right before; a gap in the data (no sales at all) also gives None
+    previous = None
+    for m in months:
+        follows = previous and _next_month(previous["month"]) == m["month"]
+        m["change"] = (100 * (m["revenue"] - previous["revenue"]) / previous["revenue"]
+                       if follows and previous["revenue"] else None)
+        previous = m
 
     # %w gives 0 for Sunday; turned into Monday first, the way people read a week
     cursor.execute("""
@@ -112,6 +119,11 @@ def calculate_stats(conn: sqlite3.Connection, top: int = 5) -> dict:
         "monthly": months,
         "weekdays": weekdays,
     }
+
+
+def _next_month(year_month: str) -> str:
+    year, month = map(int, year_month.split("-"))
+    return f"{year + month // 12}-{month % 12 + 1:02d}"
 
 
 def _month_name(year_month: str) -> str:
@@ -173,7 +185,8 @@ def format_report(stats: dict) -> str:
     for m in stats["monthly"]:
         # a month with few sales gets at least 1 block, otherwise it looks like nothing was sold
         bar = "█" * max(1, round(20 * m["revenue"] / biggest)) if biggest and m["revenue"] > 0 else ""
-        lines.append(f"  {_month_name(m['month']):<9} {format_money(m['revenue']):>16}  {bar}")
+        change = f"{m['change']:+.0f}%" if m["change"] is not None else ""
+        lines.append(f"  {_month_name(m['month']):<9} {format_money(m['revenue']):>16} {change:>6}  {bar}")
 
     lines.append(_title("SALES BY WEEKDAY"))
     for w in stats["weekdays"]:

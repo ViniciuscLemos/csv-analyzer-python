@@ -164,6 +164,22 @@ class TestStats(FolderTestCase):
         self.assertAlmostEqual(ana["share"], 70.0)
         self.assertEqual([m["month"] for m in stats["monthly"]], ["2024-01", "2024-02"])
 
+    def test_change_from_last_month(self):
+        months = calculate_stats(self.conn)["monthly"]
+        self.assertIsNone(months[0]["change"])
+        self.assertAlmostEqual(months[1]["change"], -57.14, places=2)  # 70 -> 30
+        self.assertIn("-57%", format_report(calculate_stats(self.conn)))
+
+    def test_no_change_after_a_month_without_sales(self):
+        self.write_csv([
+            ["2024-11-10", "Pen", "Stationery", "1", "10", "Ana", "South"],
+            ["2024-12-10", "Pen", "Stationery", "2", "10", "Ana", "South"],
+            ["2025-02-10", "Pen", "Stationery", "1", "10", "Ana", "South"],
+        ])
+        conn = create_database(":memory:")
+        insert_sales(conn, self.csv)
+        self.assertEqual([m["change"] for m in calculate_stats(conn)["monthly"]], [None, 100, None])
+
     def test_keep_period(self):
         self.assertEqual(keep_period(self.conn, "2024-01-15", None), 1)
         self.assertEqual(keep_period(self.conn, None, "2024-01-31"), 1)
