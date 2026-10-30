@@ -267,6 +267,10 @@ class TestMain(FolderTestCase):
         self.assertIn("<title>Sales report</title>", page)
         self.assertIn("Revenue by month", page)
 
+    def test_open_turns_on_html(self):
+        self.assertTrue(main.read_args(["--open"]).html)
+        self.assertFalse(main.read_args([]).html)
+
     def test_generate_zero_is_refused(self):
         with redirect_stdout(StringIO()), self.assertRaises(SystemExit), \
                 open(os.devnull, "w") as null, contextlib.redirect_stderr(null):

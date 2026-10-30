@@ -28,6 +28,7 @@ python main.py --csv my_sales.csv          # use another file
 python main.py --generate 1000 --seed 42   # generate a new CSV
 python main.py --json                      # also save it as JSON
 python main.py --html                      # also save a page with charts
+python main.py --open                      # same, and opens it in the browser at the end
 python main.py --top 10                    # top 10 products instead of 5
 python main.py --from 2024-06-01 --to 2024-06-30   # only one period
 python main.py --category books            # only one category

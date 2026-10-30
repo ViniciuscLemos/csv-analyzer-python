@@ -3,6 +3,8 @@
 import argparse
 import os
 import sys
+import webbrowser
+from pathlib import Path
 
 from datetime import datetime
 
@@ -38,6 +40,8 @@ def read_args(argv=None) -> argparse.Namespace:
                         help="folder where the report is saved (default: output/)")
     parser.add_argument("--json", action="store_true",
                         help="also saves the stats to output/report.json")
+    parser.add_argument("--open", action="store_true",
+                        help="opens the HTML report in the browser at the end (turns on --html)")
     parser.add_argument("--html", action="store_true",
                         help="also saves a page with charts to output/report.html")
     parser.add_argument("--generate", type=positive, metavar="N",
@@ -54,7 +58,9 @@ def read_args(argv=None) -> argparse.Namespace:
                         help="only sales from this seller")
     parser.add_argument("--seed", type=int,
                         help="seed for the sample CSV (same value = same data)")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    args.html = args.html or args.open
+    return args
 
 
 def show(path: str) -> str:
@@ -140,6 +146,8 @@ def main(argv=None) -> int:
             print(f"      JSON saved to: {show(json_file)}")
         if html_file:
             print(f"      HTML saved to: {show(html_file)} (open it in the browser)")
+            if args.open:
+                webbrowser.open(Path(html_file).resolve().as_uri())
     finally:
         conn.close()
 
