@@ -65,6 +65,21 @@ def calculate_stats(conn: sqlite3.Connection, top: int = 5) -> dict:
     """, (top,))
     products = _rows(cursor, ("product", "units", "revenue"))
 
+    # the product that brought the most money in each category. The window function ranks
+    # inside each category; ties go to the name so the result doesn't change between runs
+    cursor.execute("""
+        SELECT category, product, units, revenue
+        FROM (
+            SELECT category, product, SUM(quantity) AS units, SUM(total) AS revenue,
+                   ROW_NUMBER() OVER (PARTITION BY category ORDER BY SUM(total) DESC, product) AS place
+            FROM sales
+            GROUP BY category, product
+        )
+        WHERE place = 1
+        ORDER BY revenue DESC
+    """)
+    category_leaders = _rows(cursor, ("category", "product", "units", "revenue"))
+
     cursor.execute("""
         SELECT
             seller,
@@ -114,6 +129,7 @@ def calculate_stats(conn: sqlite3.Connection, top: int = 5) -> dict:
         "summary": summary,
         "categories": categories,
         "top_products": products,
+        "category_leaders": category_leaders,
         "sellers": sellers,
         "regions": regions,
         "monthly": months,
@@ -166,6 +182,10 @@ def format_report(stats: dict) -> str:
     lines.append(_title(f"TOP {len(stats['top_products'])} PRODUCTS (by units)"))
     for i, p in enumerate(stats["top_products"], start=1):
         lines.append(f"  {i}. {p['product']:<26} {p['units']:>4} un. - {format_money(p['revenue'])}")
+
+    lines.append(_title("BEST PRODUCT IN EACH CATEGORY (by revenue)"))
+    for c in stats["category_leaders"]:
+        lines.append(f"  {c['category']:<15} {c['product']:<26} {format_money(c['revenue']):>12}")
 
     lines.append(_title("SELLER RANKING"))
     lines.append(f"  {'Seller':<15} {'Sales':>7} {'Revenue':>16} {'Share':>7}")

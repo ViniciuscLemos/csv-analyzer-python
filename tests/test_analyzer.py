@@ -195,6 +195,21 @@ class TestStats(FolderTestCase):
         self.assertEqual(keep_seller(self.conn, "ANA"), 1)
         self.assertEqual([s["seller"] for s in calculate_stats(self.conn)["sellers"]], ["Ana"])
 
+    def test_best_product_in_each_category(self):
+        self.write_csv([
+            ["2024-01-10", "Coffee", "Food", "5", "10", "Ana", "South"],     # 50
+            ["2024-01-11", "Cake", "Food", "1", "80", "Ana", "South"],       # 80, fewer units but more money
+            ["2024-01-12", "Book", "Books", "1", "40", "Ana", "North"],
+            ["2024-01-13", "Atlas", "Books", "2", "20", "Ana", "North"],     # 40, same as Book
+        ])
+        conn = create_database(":memory:")
+        insert_sales(conn, self.csv)
+        stats = calculate_stats(conn)
+        leaders = {c["category"]: c["product"] for c in stats["category_leaders"]}
+        self.assertEqual(leaders, {"Food": "Cake", "Books": "Atlas"})
+        self.assertEqual(stats["category_leaders"][0]["category"], "Food")
+        self.assertIn("BEST PRODUCT IN EACH CATEGORY", format_report(stats))
+
     def test_keep_region(self):
         self.assertEqual(keep_region(self.conn, "south "), 1)
         self.assertEqual([r["region"] for r in calculate_stats(self.conn)["regions"]], ["South"])
