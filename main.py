@@ -8,7 +8,7 @@ from pathlib import Path
 
 from datetime import datetime
 
-from src.database import create_database, insert_sales, keep_category, keep_period, keep_seller, InvalidCSVError
+from src.database import create_database, insert_sales, keep_category, keep_period, keep_region, keep_seller, InvalidCSVError
 from src.analyzer import generate_report
 from src.csv_generator import generate_sample_csv
 
@@ -56,6 +56,8 @@ def read_args(argv=None) -> argparse.Namespace:
                         help="only sales from this category")
     parser.add_argument("--seller",
                         help="only sales from this seller")
+    parser.add_argument("--region",
+                        help="only sales from this region")
     parser.add_argument("--seed", type=int,
                         help="seed for the sample CSV (same value = same data)")
     args = parser.parse_args(argv)
@@ -135,6 +137,12 @@ def main(argv=None) -> int:
             if sellers and removed == result.inserted:
                 # easy to type just the first name, so say which names exist
                 print(f"      No seller called '{args.seller}'. In this file: {', '.join(sellers)}")
+        if args.region:
+            regions = [row[0] for row in conn.execute("SELECT DISTINCT region FROM sales ORDER BY region")]
+            removed = keep_region(conn, args.region)
+            print(f"      {removed} sale(s) from other regions left out.")
+            if regions and conn.execute("SELECT 1 FROM sales LIMIT 1").fetchone() is None:
+                print(f"      No region called '{args.region}'. In this file: {', '.join(regions)}")
 
         print("\n[4/4] Generating the report...")
         report_file = os.path.join(args.output, "report.txt")
