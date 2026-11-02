@@ -17,7 +17,7 @@ If there's no CSV at `data/sales.csv`, it generates one with 200 made-up sales. 
 The report has:
 - total revenue and average ticket
 - sales by category and by region
-- the best-selling products
+- the best-selling products, and the one that brought the most money in each category
 - the seller ranking
 - a simple text chart with the revenue for each month
 
@@ -33,6 +33,7 @@ python main.py --top 10                    # top 10 products instead of 5
 python main.py --from 2024-06-01 --to 2024-06-30   # only one period
 python main.py --category books            # only one category
 python main.py --seller "ana lima"          # only one seller (case doesn't matter)
+python main.py --region south              # only one region
 ```
 
 ## What the report looks like
