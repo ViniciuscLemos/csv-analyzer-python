@@ -127,22 +127,17 @@ def main(argv=None) -> int:
         if args.start or args.end:
             removed = keep_period(conn, args.start, args.end)
             print(f"      {removed} sale(s) outside the period left out.")
-        if args.category:
-            removed = keep_category(conn, args.category)
-            print(f"      {removed} sale(s) from other categories left out.")
-        if args.seller:
-            sellers = [row[0] for row in conn.execute("SELECT DISTINCT seller FROM sales ORDER BY seller")]
-            removed = keep_seller(conn, args.seller)
-            print(f"      {removed} sale(s) from other sellers left out.")
-            if sellers and removed == result.inserted:
-                # easy to type just the first name, so say which names exist
-                print(f"      No seller called '{args.seller}'. In this file: {', '.join(sellers)}")
-        if args.region:
-            regions = [row[0] for row in conn.execute("SELECT DISTINCT region FROM sales ORDER BY region")]
-            removed = keep_region(conn, args.region)
-            print(f"      {removed} sale(s) from other regions left out.")
-            if regions and conn.execute("SELECT 1 FROM sales LIMIT 1").fetchone() is None:
-                print(f"      No region called '{args.region}'. In this file: {', '.join(regions)}")
+        for column, plural, wanted, keep in (("category", "categories", args.category, keep_category),
+                                             ("seller", "sellers", args.seller, keep_seller),
+                                             ("region", "regions", args.region, keep_region)):
+            if not wanted:
+                continue
+            names = [row[0] for row in conn.execute(f"SELECT DISTINCT {column} FROM sales ORDER BY {column}")]
+            removed = keep(conn, wanted)
+            print(f"      {removed} sale(s) from other {plural} left out.")
+            if names and wanted.strip().lower() not in (name.lower() for name in names):
+                # easy to type just a first name or a typo, so say which names exist
+                print(f"      No {column} called '{wanted}'. In this file: {', '.join(names)}")
 
         print("\n[4/4] Generating the report...")
         report_file = os.path.join(args.output, "report.txt")

@@ -286,6 +286,30 @@ class TestMain(FolderTestCase):
         self.assertIn("<title>Sales report</title>", page)
         self.assertIn("Revenue by month", page)
 
+    def test_a_filter_that_matches_nothing_lists_the_names(self):
+        self.write_csv([
+            ["2026-01-05", "Pen", "Office", "2", "3.50", "Ana Lima", "South"],
+            ["2026-03-05", "Book", "Books", "1", "20", "Bruno Reis", "North"],
+        ])
+        for flag, value, hint in (("--category", "pens", "No category called 'pens'. In this file: Books, Office"),
+                                  ("--seller", "Bruno", "No seller called 'Bruno'. In this file: Ana Lima, Bruno Reis"),
+                                  ("--region", "east", "No region called 'east'. In this file: North, South")):
+            with redirect_stdout(StringIO()) as out:
+                main.main(["--csv", self.csv, "--output", self.folder.name, flag, value])
+            self.assertIn(hint, out.getvalue())
+
+    def test_the_hint_still_shows_after_a_date_filter(self):
+        self.write_csv([
+            ["2026-01-05", "Pen", "Office", "2", "3.50", "Ana Lima", "South"],
+            ["2026-03-05", "Book", "Books", "1", "20", "Bruno Reis", "North"],
+        ])
+        with redirect_stdout(StringIO()) as out:
+            main.main(["--csv", self.csv, "--output", self.folder.name, "--from", "2026-02-01", "--seller", "Bruno"])
+        self.assertIn("No seller called 'Bruno'", out.getvalue())
+        with redirect_stdout(StringIO()) as out:
+            main.main(["--csv", self.csv, "--output", self.folder.name, "--seller", "bruno reis"])
+        self.assertNotIn("No seller called", out.getvalue())
+
     def test_open_turns_on_html(self):
         self.assertTrue(main.read_args(["--open"]).html)
         self.assertFalse(main.read_args([]).html)
