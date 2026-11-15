@@ -61,6 +61,9 @@ def read_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--seed", type=int,
                         help="seed for the sample CSV (same value = same data)")
     args = parser.parse_args(argv)
+    # the same format on both, so comparing the text works
+    if args.start and args.end and args.start > args.end:
+        parser.error(f"--from {args.start} is after --to {args.end}, nothing would be left")
     args.html = args.html or args.open
     return args
 

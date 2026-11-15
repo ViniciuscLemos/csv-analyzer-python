@@ -319,6 +319,12 @@ class TestMain(FolderTestCase):
                 open(os.devnull, "w") as null, contextlib.redirect_stderr(null):
             main.read_args(["--generate", "0"])
 
+    def test_from_after_to_is_refused(self):
+        with redirect_stdout(StringIO()), self.assertRaises(SystemExit), \
+                open(os.devnull, "w") as null, contextlib.redirect_stderr(null):
+            main.read_args(["--from", "2026-05-01", "--to", "2026-04-01"])
+        self.assertEqual(main.read_args(["--from", "2026-04-01", "--to", "2026-04-01"]).start, "2026-04-01")
+
     def test_invalid_csv_returns_error(self):
         self.write_csv([["x"]], header=["wrong_column"])
         with redirect_stdout(StringIO()):
