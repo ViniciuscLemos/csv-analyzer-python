@@ -91,13 +91,14 @@ def insert_sales(conn: sqlite3.Connection, csv_path: str) -> ImportResult:
         delimiter = max((",", ";", "\t"), key=header.count)
         reader = csv.DictReader(file, delimiter=delimiter)
 
-        columns = {c.strip() for c in (reader.fieldnames or [])}
+        # "Date" or "PRICE" in the header is common when the file comes from a spreadsheet
+        columns = {c.strip().lower() for c in (reader.fieldnames or [])}
         missing = [c for c in REQUIRED_COLUMNS if c not in columns]
         if missing:
             raise InvalidCSVError(f"Missing columns in the CSV: {', '.join(missing)}")
 
         for number, row in enumerate(reader, start=2):  # line 1 is the header
-            row = {(k or "").strip(): v for k, v in row.items()}
+            row = {(k or "").strip().lower(): v for k, v in row.items()}
             # Excel leaves lines like ",,,,,," at the end; that's not a broken sale
             if not any((v or "").strip() for v in row.values() if isinstance(v, str)):
                 continue

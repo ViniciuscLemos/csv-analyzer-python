@@ -122,6 +122,12 @@ class TestImport(FolderTestCase):
         result = insert_sales(create_database(":memory:"), self.csv)
         self.assertEqual((result.inserted, result.rejected), (1, []))
 
+    def test_header_in_any_case(self):
+        self.write_csv([["2026-01-05", "Pen", "Office", "2", "3.50", "Ana", "South"]],
+                       header=["Date", "Product", "Category", "QUANTITY", "Price", "Seller", "Region "])
+        conn = create_database(":memory:")
+        self.assertEqual(insert_sales(conn, self.csv).inserted, 1)
+
     def test_missing_columns(self):
         self.write_csv([["2024-01-10", "Coffee"]], header=["date", "product"])
         conn = create_database(":memory:")
