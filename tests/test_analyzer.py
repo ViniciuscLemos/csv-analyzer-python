@@ -57,7 +57,7 @@ class TestImport(FolderTestCase):
     def test_rejects_invalid_rows_without_stopping(self):
         self.write_csv([
             ["2024-01-10", "Coffee", "Food", "2", "10", "Ana", "South"],
-            ["10/01/2024", "Coffee", "Food", "2", "10", "Ana", "South"],   # wrong date
+            ["Jan 10 2024", "Coffee", "Food", "2", "10", "Ana", "South"],  # wrong date
             ["2024-01-10", "Coffee", "Food", "two", "10", "Ana", "South"],  # quantity
             ["2024-01-10", "Coffee", "Food", "0", "10", "Ana", "South"],   # zero quantity
             ["2024-01-10", "", "Food", "1", "10", "Ana", "South"],         # empty product
@@ -121,6 +121,19 @@ class TestImport(FolderTestCase):
         ])
         result = insert_sales(create_database(":memory:"), self.csv)
         self.assertEqual((result.inserted, result.rejected), (1, []))
+
+    def test_day_month_year_dates(self):
+        self.write_csv([
+            ["15/03/2026", "Pen", "Office", "2", "3.50", "Ana", "South"],
+            ["31/02/2026", "Pen", "Office", "1", "3.50", "Ana", "South"],
+            ["03-15-2026", "Pen", "Office", "1", "3.50", "Ana", "South"],
+        ])
+        conn = create_database(":memory:")
+        result = insert_sales(conn, self.csv)
+        self.assertEqual(result.inserted, 1)
+        self.assertEqual(conn.execute("SELECT date FROM sales").fetchone()[0], "2026-03-15")
+        self.assertEqual([line for line, _ in result.rejected], [3, 4])
+        self.assertIn("DD/MM/YYYY", result.rejected[0][1])
 
     def test_header_in_any_case(self):
         self.write_csv([["2026-01-05", "Pen", "Office", "2", "3.50", "Ana", "South"]],

@@ -45,16 +45,24 @@ def _parse_price(text: str) -> float:
     return float(text.replace(",", "."))
 
 
+def _parse_date(text: str) -> str:
+    """YYYY-MM-DD, or DD/MM/YYYY the way a spreadsheet in Portuguese writes it.
+    It's saved as YYYY-MM-DD either way, so the --from/--to filters and months still work."""
+    text = text.strip()
+    for layout in ("%Y-%m-%d", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(text, layout).strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+    raise ValueError(f"date '{text}' is not in the YYYY-MM-DD or DD/MM/YYYY format")
+
+
 def _validate_row(row: dict) -> tuple:
     for column in REQUIRED_COLUMNS:
         if not (row.get(column) or "").strip():
             raise ValueError(f"field '{column}' is empty")
 
-    date = row["date"].strip()
-    try:
-        datetime.strptime(date, "%Y-%m-%d")
-    except ValueError:
-        raise ValueError(f"date '{date}' is not in the YYYY-MM-DD format") from None
+    date = _parse_date(row["date"])
 
     try:
         quantity = int(row["quantity"])
