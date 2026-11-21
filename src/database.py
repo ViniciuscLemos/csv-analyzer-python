@@ -64,10 +64,15 @@ def _validate_row(row: dict) -> tuple:
 
     date = _parse_date(row["date"])
 
+    # a column that went through Excel can come back as "2.0" or "2,0"
+    text = row["quantity"].strip().replace(",", ".")
     try:
-        quantity = int(row["quantity"])
+        number = float(text)
     except ValueError:
         raise ValueError(f"quantity '{row['quantity']}' is not a whole number") from None
+    if not number.is_integer():
+        raise ValueError(f"quantity '{row['quantity']}' is not a whole number")
+    quantity = int(number)
     if quantity <= 0:
         raise ValueError("quantity must be greater than zero")
 

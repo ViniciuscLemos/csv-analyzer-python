@@ -122,6 +122,18 @@ class TestImport(FolderTestCase):
         result = insert_sales(create_database(":memory:"), self.csv)
         self.assertEqual((result.inserted, result.rejected), (1, []))
 
+    def test_quantity_written_with_decimals_by_a_spreadsheet(self):
+        self.write_csv([
+            ["2026-01-05", "Pen", "Office", "2.0", "3.50", "Ana", "South"],
+            ["2026-01-06", "Pen", "Office", "3,0", "3.50", "Ana", "South"],
+            ["2026-01-07", "Pen", "Office", "1.5", "3.50", "Ana", "South"],
+        ])
+        conn = create_database(":memory:")
+        result = insert_sales(conn, self.csv)
+        self.assertEqual(result.inserted, 2)
+        self.assertEqual([q for (q,) in conn.execute("SELECT quantity FROM sales ORDER BY date")], [2, 3])
+        self.assertEqual(result.rejected, [(4, "quantity '1.5' is not a whole number")])
+
     def test_day_month_year_dates(self):
         self.write_csv([
             ["15/03/2026", "Pen", "Office", "2", "3.50", "Ana", "South"],
